@@ -1,0 +1,7 @@
+com/example/howtodoinjava/springhystrixschoolservice/service/hystrix/HystrixCustomCommand.class
+com/example/howtodoinjava/springhystrixschoolservice/service/StudentServiceDelegate.class
+com/example/howtodoinjava/springhystrixschoolservice/service/CustomServiceDelegate.class
+com/example/howtodoinjava/springhystrixschoolservice/controller/SchoolServiceController.class
+com/example/howtodoinjava/springhystrixschoolservice/service/MasterServiceDelegate.class
+com/example/howtodoinjava/springhystrixschoolservice/service/hystrix/HystrixImplementsGeneric.class
+com/example/howtodoinjava/springhystrixschoolservice/SpringHystrixSchoolServiceApplication.class

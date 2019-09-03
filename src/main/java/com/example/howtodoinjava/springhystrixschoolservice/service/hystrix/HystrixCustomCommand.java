@@ -3,9 +3,14 @@ package com.example.howtodoinjava.springhystrixschoolservice.service.hystrix;
 import com.netflix.hystrix.*;
 import com.netflix.hystrix.metric.consumer.HystrixDashboardStream;
 import com.netflix.hystrix.strategy.eventnotifier.HystrixEventNotifierDefault;
+import org.apache.http.protocol.HTTP;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URL;
 import java.util.Date;
+import java.util.Objects;
 
 public class HystrixCustomCommand extends HystrixCommand<String> {
 
@@ -57,8 +62,14 @@ public class HystrixCustomCommand extends HystrixCommand<String> {
 
     @Override
     protected String getFallback() {
-        String response = restTemplate.getForObject(fallbackURL, String.class);
-        System.out.println("Response Received as " + response + " -  " + new Date());
+        String response;
+        try {
+            response = restTemplate.getForObject(url, String.class);
+            System.out.println("Response Received as " + response + " -  " + new Date());
+
+        }catch (Exception fallback){
+            return "ALTERNATIVE FLOW "+ this.commandKey +" SERVICE!!! :::" + new Date();
+        }
 
         return "ALTERNATIVE FLOW "+ this.commandKey +" SERVICE!!! :::  " + response + " -  " + new Date();
     }

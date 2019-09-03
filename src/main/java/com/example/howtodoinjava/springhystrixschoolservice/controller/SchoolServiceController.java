@@ -33,7 +33,7 @@ public class SchoolServiceController {
         builder.append(masterServiceDelegate.excuteRequest(urlMaster, "Master, Student and Custom", "MASTER KEY", urlStudent));
         builder.append("<br />");
         builder.append("<br />");
-        builder.append(studentServiceDelegate.excuteRequest(urlStudent, "Master, Student and Custom", "STUDENT KEY", urlAlternativeFlow));
+        builder.append(studentServiceDelegate.excuteRequest(urlStudent, "Master, Student and Custom", "STUDENT KEY", ""));
         builder.append("<br />");
         builder.append("<br />");
         builder.append(customServiceDelegate.excuteRequest(urlAlternativeFlow, "Master, Student and Custom","CUSTOM KEY", urlMaster));

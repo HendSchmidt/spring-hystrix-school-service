@@ -12,8 +12,8 @@ public class CustomServiceDelegate implements HystrixImplementsGeneric {
     private RestTemplate restTemplate;
 
     @Override
-    public String excuteRequest(String url, String group, String command, String fallbackMessage) {
-        HystrixCustomCommand hystrixCustomCommand = new HystrixCustomCommand(group, command, restTemplate, url, fallbackMessage);
+    public String excuteRequest(String url, String group, String command, String fallbackURL) {
+        HystrixCustomCommand hystrixCustomCommand = new HystrixCustomCommand(group, command, restTemplate, url, fallbackURL);
         return hystrixCustomCommand.execute();
     }
 }

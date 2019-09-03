@@ -1,6 +1,8 @@
 package com.example.howtodoinjava.springhystrixschoolservice.service.hystrix;
 
 import com.netflix.hystrix.*;
+import com.netflix.hystrix.metric.consumer.HystrixDashboardStream;
+import com.netflix.hystrix.strategy.eventnotifier.HystrixEventNotifierDefault;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
@@ -9,38 +11,40 @@ public class HystrixCustomCommand extends HystrixCommand<String> {
 
     private RestTemplate restTemplate;
     private String url;
-    private String fallbackMessage;
+    private String fallbackURL;
 
-    public HystrixCustomCommand(String groupKey, String commandKey, RestTemplate restTemplate, String url, String fallbackMessage){
+    public HystrixCustomCommand(String groupKey, String commandKey, RestTemplate restTemplate, String url, String fallbackURL){
         super(setter(groupKey, commandKey));
         this.restTemplate = restTemplate;
         this.url = url;
-        this.fallbackMessage = fallbackMessage;
+        this.fallbackURL = fallbackURL;
     }
 
     private static Setter setter(String groupKey, String commandKey) {
         HystrixCommandGroupKey group = HystrixCommandGroupKey.Factory.asKey(groupKey);
         HystrixCommandKey command = HystrixCommandKey.Factory.asKey(commandKey);
-        HystrixThreadPoolKey threadPoolKey = HystrixThreadPoolKey.Factory.asKey("funniestThreadPoolKey");
 
-        HystrixThreadPoolProperties.Setter threadproperties =
-                HystrixThreadPoolProperties.Setter()
-                    .withCoreSize(20)
-                    .withKeepAliveTimeMinutes(1)
-                    .withMaxQueueSize(1000)
-                    .withQueueSizeRejectionThreshold(100);
+        /*#################CONFIGURAÇÂO PARA THREADS###########################*/
+        HystrixThreadPoolProperties.Setter threadPoolProperties = HystrixThreadPoolProperties.Setter()
+                .withCoreSize(10).withMaximumSize(10).withMaxQueueSize(3);
 
-        HystrixCommandProperties.Setter commandproperty =
-                HystrixCommandProperties.Setter()
-                        .withFallbackEnabled(true)
-                        .withExecutionTimeoutEnabled(true)
-                        .withExecutionTimeoutInMilliseconds(1000);
+        /*################CONFIGURAÇÂO CircuitBreaker and fallback#############*/
+        HystrixCommandProperties.Setter commandproperty =  HystrixCommandProperties.Setter()
+                .withFallbackEnabled(true)// habilita fallBack
+                .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.THREAD)// define a estrategia de isolar por threds
+                .withExecutionIsolationThreadInterruptOnTimeout(true)
+                .withExecutionTimeoutInMilliseconds(10)// seta o tempo de parada para a thread
+                .withCircuitBreakerEnabled(true)//habiolita o circuit breaker
+                .withCircuitBreakerRequestVolumeThreshold(10)//quantidade minima de requests que ira iniciar a abertura do circuito
+                .withCircuitBreakerSleepWindowInMilliseconds(120000)// tempo que o circuito ira ficar aberto
+                .withMetricsRollingStatisticalWindowInMilliseconds(20000)// config das estatisticas
+                .withMetricsRollingPercentileWindowInMilliseconds(70000);// config das estatisticas
 
-        return HystrixCommand.Setter.withGroupKey(group)
-                .andCommandKey(command)
-                .andThreadPoolPropertiesDefaults(threadproperties)
+        return HystrixCommand.Setter
+                .withGroupKey(group)//seta o atributo dinamico de grupo usado para agrupar as threads as threads
+                .andCommandKey(command)//seta o atributo dinamico de comandoKey usado para criar as threads
                 .andCommandPropertiesDefaults(commandproperty)
-                .andThreadPoolKey(threadPoolKey);
+                .andThreadPoolPropertiesDefaults(threadPoolProperties);// seta os comando nas properties do hystrix
     }
 
     @Override
@@ -53,7 +57,10 @@ public class HystrixCustomCommand extends HystrixCommand<String> {
 
     @Override
     protected String getFallback() {
-        return this.fallbackMessage + new Date();
+        String response = restTemplate.getForObject(fallbackURL, String.class);
+        System.out.println("Response Received as " + response + " -  " + new Date());
+
+        return "ALTERNATIVE FLOW "+ this.commandKey +" SERVICE!!! :::  " + response + " -  " + new Date();
     }
 
 }

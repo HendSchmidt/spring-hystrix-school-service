@@ -1,16 +1,9 @@
 package com.example.howtodoinjava.springhystrixschoolservice.service.hystrix;
 
 import com.netflix.hystrix.*;
-import com.netflix.hystrix.metric.consumer.HystrixDashboardStream;
-import com.netflix.hystrix.strategy.eventnotifier.HystrixEventNotifierDefault;
-import org.apache.http.protocol.HTTP;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URL;
 import java.util.Date;
-import java.util.Objects;
 
 public class HystrixCustomCommand extends HystrixCommand<String> {
 
@@ -30,15 +23,15 @@ public class HystrixCustomCommand extends HystrixCommand<String> {
         HystrixCommandKey command = HystrixCommandKey.Factory.asKey(commandKey);
 
         /*#################CONFIGURAÇÂO PARA THREADS###########################*/
-        HystrixThreadPoolProperties.Setter threadPoolProperties = HystrixThreadPoolProperties.Setter()
-                .withCoreSize(10).withMaximumSize(10).withMaxQueueSize(3);
+        HystrixThreadPoolProperties.Setter threadPoolProperties = HystrixThreadPoolProperties.Setter().withAllowMaximumSizeToDivergeFromCoreSize(true)
+                .withCoreSize(240).withMaximumSize(800).withMaxQueueSize(120);
 
         /*################CONFIGURAÇÂO CircuitBreaker and fallback#############*/
         HystrixCommandProperties.Setter commandproperty =  HystrixCommandProperties.Setter()
                 .withFallbackEnabled(true)// habilita fallBack
                 .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.THREAD)// define a estrategia de isolar por threds
                 .withExecutionIsolationThreadInterruptOnTimeout(true)
-                .withExecutionTimeoutInMilliseconds(10)// seta o tempo de parada para a thread
+                .withExecutionTimeoutInMilliseconds(1000)// seta o tempo de parada para a thread
                 .withCircuitBreakerEnabled(true)//habiolita o circuit breaker
                 .withCircuitBreakerRequestVolumeThreshold(10)//quantidade minima de requests que ira iniciar a abertura do circuito
                 .withCircuitBreakerSleepWindowInMilliseconds(120000)// tempo que o circuito ira ficar aberto
@@ -55,8 +48,6 @@ public class HystrixCustomCommand extends HystrixCommand<String> {
     @Override
     protected String run() throws Exception {
         String response = restTemplate.getForObject(url, String.class);
-        System.out.println("Response Received as " + response + " -  " + new Date());
-
         return "NORMAL FLOW "+ this.commandKey +" SERVICE!!! :::  " + response + " -  " + new Date();
     }
 
@@ -64,14 +55,12 @@ public class HystrixCustomCommand extends HystrixCommand<String> {
     protected String getFallback() {
         String response;
         try {
-            response = restTemplate.getForObject(url, String.class);
-            System.out.println("Response Received as " + response + " -  " + new Date());
-
-        }catch (Exception fallback){
-            return "ALTERNATIVE FLOW "+ this.commandKey +" SERVICE!!! :::" + new Date();
+            response = restTemplate.getForObject(fallbackURL, String.class);
+        }catch (Exception fallback) {
+            return "ALTERNATIVE FLOW "+ this.commandKey +" SERVICE!!! ::: WAS NOT REDIRECTED TO FALLBACKURL " + new Date();
         }
 
-        return "ALTERNATIVE FLOW "+ this.commandKey +" SERVICE!!! :::  " + response + " -  " + new Date();
+        return "ALTERNATIVE FLOW "+ this.commandKey +" SERVICE!!! ::: " + response + " -  " + new Date();
     }
 
 }

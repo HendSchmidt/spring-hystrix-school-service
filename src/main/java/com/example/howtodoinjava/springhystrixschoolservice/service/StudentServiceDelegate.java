@@ -12,7 +12,7 @@ public class StudentServiceDelegate implements HystrixImplementsGeneric {
     private RestTemplate restTemplate;
 
     @Override
-    public String excuteRequest(String url, String group, String command, String fallbackURL) {
+    public String executeRequest(String url, String group, String command, String fallbackURL) {
         HystrixCustomCommand hystrixCustomCommand = new HystrixCustomCommand(group, command, restTemplate, url, fallbackURL);
         return hystrixCustomCommand.execute();
     }
